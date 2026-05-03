@@ -1,0 +1,14 @@
+[Unit]
+Description=HermesHub offline voice assistant
+After=network-online.target sound.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+Environment="HERMESHUB_ROOT=%h/hermeshub untyped"
+ExecStart=/usr/bin/env bash -lc 'cd "$HERMESHUB_ROOT" && exec .venv/bin/hermeshub --config config.yaml run'
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=default.target

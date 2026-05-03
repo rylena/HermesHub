@@ -1,0 +1,35 @@
+[build-system]
+requires = ["setuptools>=69", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "hermeshub-untyped"
+version = "0.1.0"
+description = "Offline-first voice assistant hub for Hermes agents."
+readme = "README.md"
+requires-python = ">=3.10,<3.13"
+dependencies = [
+  "numpy>=1.24",
+  "opencv-python>=4.8",
+  "piper-tts>=1.2",
+  "PyYAML>=6.0",
+  "requests>=2.31",
+  "sounddevice>=0.4",
+  "vosk>=0.3.45",
+]
+
+[project.optional-dependencies]
+dev = [
+  "pytest>=8.0",
+  "ruff>=0.4",
+]
+
+[project.scripts]
+hermeshub = "hermeshub.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"

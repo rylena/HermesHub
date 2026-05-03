@@ -1,0 +1,39 @@
+assistant:
+  name: "Hermes"
+  agent_url: "http://127.0.0.1:8000"
+  request_timeout_seconds: 60
+  fallback_reply: "I could not reach Hermes right now."
+
+audio:
+  sample_rate: 16000
+  channels: 1
+  block_ms: 80
+  input_device: null
+
+wake:
+  enabled: true
+  model_names:
+    - "hey jarvis"
+  inference_framework: "onnx"
+  threshold: 0.5
+  vad_threshold: 0.5
+  cooldown_seconds: 2.0
+
+stt:
+  vosk_model_path: "models/vosk-model-small-en-us-0.15"
+  max_utterance_seconds: 12
+  silence_seconds: 1.1
+  silence_rms: 450
+
+tts:
+  piper_model_path: "voices/en_US-lessac-medium.onnx"
+  piper_config_path: "voices/en_US-lessac-medium.onnx.json"
+  output_wav: "data/last_reply.wav"
+  speaker: null
+
+camera:
+  enabled: true
+  device_index: 0
+  capture_dir: "data/camera"
+  include_frame_with_prompt: true
+  jpeg_quality: 90

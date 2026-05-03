@@ -1,0 +1,7 @@
+numpy>=1.24
+opencv-python>=4.8
+piper-tts>=1.2
+PyYAML>=6.0
+requests>=2.31
+sounddevice>=0.4
+vosk>=0.3.45
