@@ -9,6 +9,8 @@ from hermeshub.tts import find_piper
 def run_doctor(config):
     checks = []
     checks.append(("config loaded", True, "ok"))
+    for model_path in config.wake.model_paths:
+        checks.append(_path_check(f"wake model for {config.wake.phrase!r}", model_path))
     checks.append(_path_check("Vosk model", config.stt.vosk_model_path, is_dir=True))
     checks.append(_path_check("Piper voice", config.tts.piper_model_path))
     checks.append(_path_check("Piper voice config", config.tts.piper_config_path))

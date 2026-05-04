@@ -6,7 +6,11 @@ if ! command -v apt-get >/dev/null 2>&1; then
   exit 1
 fi
 
-sudo apt-get update
+sudo apt-get \
+  -o Acquire::Retries=2 \
+  -o Acquire::http::Timeout=15 \
+  -o Acquire::https::Timeout=15 \
+  update || echo "apt update had unreachable repos; trying install with existing package metadata." >&2
 sudo apt-get install -y \
   alsa-utils \
   curl \

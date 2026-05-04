@@ -8,8 +8,9 @@ class WakeDetector:
         from openwakeword.model import Model
 
         args = {}
-        if config.model_names:
-            args["wakeword_models"] = config.model_names
+        wakeword_models = [*config.model_paths, *config.model_names]
+        if wakeword_models:
+            args["wakeword_models"] = wakeword_models
         args["inference_framework"] = config.inference_framework
         if config.vad_threshold is not None:
             args["vad_threshold"] = config.vad_threshold

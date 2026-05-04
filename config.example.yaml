@@ -12,8 +12,10 @@ audio:
 
 wake:
   enabled: true
-  model_names:
-    - "hey jarvis"
+  model_names: []
+  model_paths:
+    - "models/hey_hermes.onnx"
+  phrase: "hey hermes"
   inference_framework: "onnx"
   threshold: 0.5
   vad_threshold: 0.5
