@@ -5,6 +5,10 @@ import subprocess
 import requests
 
 
+class AgentUnavailableError(RuntimeError):
+    pass
+
+
 class HermesAgentClient:
     def __init__(self, config):
         self.config = config
@@ -27,11 +31,18 @@ class HermesAgentClient:
         if wake:
             payload["wake"] = wake
 
-        response = requests.post(
-            self.config.agent_url.rstrip("/") + "/chat",
-            json=payload,
-            timeout=self.config.request_timeout_seconds,
-        )
+        url = self.config.agent_url.rstrip("/") + "/chat"
+        try:
+            response = requests.post(
+                url,
+                json=payload,
+                timeout=self.config.request_timeout_seconds,
+            )
+        except requests.exceptions.RequestException as exc:
+            raise AgentUnavailableError(
+                f"Could not reach Hermes agent at {url}. Start the agent HTTP server "
+                "or set assistant.command to a local Hermes command."
+            ) from exc
         response.raise_for_status()
         data = response.json()
         return _reply_from_response(data)
@@ -46,14 +57,22 @@ class HermesAgentClient:
             image_path=shlex.quote(image_path or ""),
             wake=shlex.quote(str(wake or "")),
         )
-        result = subprocess.run(
-            command,
-            shell=True,
-            text=True,
-            capture_output=True,
-            timeout=self.config.request_timeout_seconds,
-            check=True,
-        )
+        try:
+            result = subprocess.run(
+                command,
+                shell=True,
+                text=True,
+                capture_output=True,
+                timeout=self.config.request_timeout_seconds,
+                check=True,
+            )
+        except subprocess.CalledProcessError as exc:
+            detail = (exc.stderr or exc.stdout or "").strip()
+            if not detail:
+                detail = f"exit code {exc.returncode}"
+            raise AgentUnavailableError(f"Hermes command failed: {detail}") from exc
+        except subprocess.TimeoutExpired as exc:
+            raise AgentUnavailableError("Hermes command timed out") from exc
         return result.stdout.strip()
 
 
@@ -84,3 +103,17 @@ def _reply_from_response(data):
             if isinstance(message, dict) and isinstance(message.get("content"), str):
                 return message["content"].strip()
     return ""
+
+
+def is_backend_error(reply):
+    lowered = (reply or "").lower()
+    return any(
+        marker in lowered
+        for marker in (
+            "failed to execute:",
+            "error invoking",
+            "exceeded your current quota",
+            "rate-limit",
+            "rate limit",
+        )
+    )

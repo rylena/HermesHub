@@ -54,6 +54,13 @@ def _play_interruptible(output, frames, interrupt_detector):
         while process.poll() is None:
             try:
                 frame = next(frames)
+            except KeyboardInterrupt:
+                process.terminate()
+                try:
+                    process.wait(timeout=0.5)
+                except subprocess.TimeoutExpired:
+                    process.kill()
+                raise
             except StopIteration:
                 break
             if interrupt_detector.detect(frame):

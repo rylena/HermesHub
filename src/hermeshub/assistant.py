@@ -1,10 +1,10 @@
 import logging
 import time
 
-from hermeshub.agent import HermesAgentClient
+from hermeshub.agent import HermesAgentClient, is_backend_error
 from hermeshub.audio import SoundDeviceAudioSource
 from hermeshub.sound import AckChime, WakeChime
-from hermeshub.stt import build_speech_recognizer
+from hermeshub.stt import build_speech_recognizer, describe_stt_engine
 from hermeshub.tts import PiperSpeaker
 from hermeshub.wake import VoskPhraseDetector, build_wake_detector
 
@@ -24,7 +24,15 @@ class HermesHubAssistant:
         self.agent = HermesAgentClient(config.assistant)
 
     def run_forever(self):
-        LOG.info("HermesHub listening")
+        stt_engine, stt_detail = describe_stt_engine(self.config.stt)
+        agent_mode = "command" if self.config.assistant.command else self.config.assistant.agent_url
+        LOG.info(
+            "HermesHub listening (wake=%s, stt=%s:%s, agent=%s)",
+            self.config.wake.engine,
+            stt_engine,
+            stt_detail,
+            agent_mode,
+        )
         frames = self.audio.frames()
         for frame in frames:
             wake = self.wake.detect(frame)
@@ -50,6 +58,9 @@ class HermesHubAssistant:
                 reply = self.agent.ask(text, wake=wake)
             except Exception as exc:
                 LOG.warning("agent request failed: %s", exc)
+                reply = self.config.assistant.fallback_reply
+            if is_backend_error(reply):
+                LOG.warning("agent returned backend error: %s", reply)
                 reply = self.config.assistant.fallback_reply
 
             elapsed = time.monotonic() - started

@@ -2,7 +2,7 @@ import argparse
 import logging
 import sys
 
-from hermeshub.agent import HermesAgentClient
+from hermeshub.agent import HermesAgentClient, is_backend_error
 from hermeshub.assistant import HermesHubAssistant
 from hermeshub.camera import Camera
 from hermeshub.config import load_config
@@ -56,7 +56,14 @@ def main(argv=None):
         return 0
     if args.command == "ask":
         print(f"You: {args.text}", flush=True)
-        reply = HermesAgentClient(config.assistant).ask(args.text)
+        try:
+            reply = HermesAgentClient(config.assistant).ask(args.text)
+        except Exception as exc:
+            print(f"Hermes agent unavailable: {exc}", file=sys.stderr)
+            reply = config.assistant.fallback_reply
+        if is_backend_error(reply):
+            print(f"Hermes agent backend error: {reply}", file=sys.stderr)
+            reply = config.assistant.fallback_reply
         print(f"Hermes: {reply}", flush=True)
         return 0
     if args.command == "capture":
