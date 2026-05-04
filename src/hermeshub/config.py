@@ -8,6 +8,7 @@ import yaml
 class AssistantConfig:
     name: str = "Hermes"
     agent_url: str = "http://127.0.0.1:8000"
+    command: str | None = None
     request_timeout_seconds: int = 60
     fallback_reply: str = "I could not reach Hermes right now."
 

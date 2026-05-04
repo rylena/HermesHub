@@ -1,6 +1,7 @@
 assistant:
   name: "Hermes"
   agent_url: "http://127.0.0.1:8000"
+  command: null
   request_timeout_seconds: 60
   fallback_reply: "I could not reach Hermes right now."
 

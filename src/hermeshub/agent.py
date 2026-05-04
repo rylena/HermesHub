@@ -1,3 +1,6 @@
+import shlex
+import subprocess
+
 import requests
 
 
@@ -6,6 +9,9 @@ class HermesAgentClient:
         self.config = config
 
     def ask(self, text, image_path=None, wake=None):
+        if self.config.command:
+            return self._ask_command(text, image_path=image_path, wake=wake)
+
         payload = {
             "message": text,
             "text": text,
@@ -24,6 +30,26 @@ class HermesAgentClient:
         response.raise_for_status()
         data = response.json()
         return _reply_from_response(data)
+
+    def _ask_command(self, text, image_path=None, wake=None):
+        prompt = text
+        if image_path:
+            prompt = f"{text}\n\nCamera frame path from HermesHub: {image_path}"
+        command = self.config.command.format(
+            prompt=shlex.quote(prompt),
+            text=shlex.quote(text),
+            image_path=shlex.quote(image_path or ""),
+            wake=shlex.quote(str(wake or "")),
+        )
+        result = subprocess.run(
+            command,
+            shell=True,
+            text=True,
+            capture_output=True,
+            timeout=self.config.request_timeout_seconds,
+            check=True,
+        )
+        return result.stdout.strip()
 
 
 def _reply_from_response(data):
