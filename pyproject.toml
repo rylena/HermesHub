@@ -23,6 +23,11 @@ dev = [
   "pytest>=8.0",
   "ruff>=0.4",
 ]
+parakeet = [
+  "nemo_toolkit[asr]>=2.2",
+  "torch>=2.3",
+  "torchaudio>=2.3",
+]
 
 [project.scripts]
 hermeshub = "hermeshub.cli:main"

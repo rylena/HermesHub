@@ -4,7 +4,7 @@ import time
 from hermeshub.agent import HermesAgentClient
 from hermeshub.audio import SoundDeviceAudioSource
 from hermeshub.sound import AckChime, WakeChime
-from hermeshub.stt import VoskSpeechRecognizer
+from hermeshub.stt import build_speech_recognizer
 from hermeshub.tts import PiperSpeaker
 from hermeshub.wake import build_wake_detector
 
@@ -16,7 +16,7 @@ class HermesHubAssistant:
         self.config = config
         self.audio = SoundDeviceAudioSource(config.audio)
         self.wake = build_wake_detector(config.wake, config.stt, config.audio)
-        self.stt = VoskSpeechRecognizer(config.stt, config.audio)
+        self.stt = build_speech_recognizer(config.stt, config.audio)
         self.tts = PiperSpeaker(config.tts)
         self.chime = WakeChime(config.sound)
         self.ack = AckChime(config.sound)
@@ -38,11 +38,10 @@ class HermesHubAssistant:
 
     def conversation_loop(self, wake, frames):
         while True:
-            text = self.stt.listen_once_from_frames(frames)
+            text = self.stt.listen_once_from_frames(frames, on_audio_captured=self.ack.play)
             if not text:
                 LOG.info("no speech recognized")
                 return
-            self.ack.play()
             print(f"You: {text}", flush=True)
 
             started = time.monotonic()

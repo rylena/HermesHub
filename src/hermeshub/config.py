@@ -46,7 +46,11 @@ class WakeConfig:
 
 @dataclass
 class SttConfig:
+    engine: str = "auto"
     vosk_model_path: str = "models/vosk-model-en-us-0.22-lgraph"
+    parakeet_model: str = "nvidia/parakeet-tdt-0.6b-v2"
+    parakeet_device: str = "auto"
+    parakeet_sample_rate: int = 16000
     max_utterance_seconds: float = 12
     no_command_timeout_seconds: float = 10
     silence_seconds: float = 0.7

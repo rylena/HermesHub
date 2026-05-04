@@ -4,6 +4,7 @@ from pathlib import Path
 
 from hermeshub.audio import describe_input_device
 from hermeshub.camera import Camera
+from hermeshub.stt import describe_stt_engine, running_on_raspberry_pi
 from hermeshub.tts import find_piper
 
 
@@ -19,7 +20,12 @@ def run_doctor(config):
         checks.append(("wake phrase", True, f"{config.wake.phrase!r} via Vosk keyword fallback ({aliases})"))
     else:
         checks.append(("wake model", False, "openwakeword selected but no model_paths/model_names set"))
+
+    resolved_stt, stt_detail = describe_stt_engine(config.stt)
+    checks.append(("STT engine", True, f"{resolved_stt} ({stt_detail})"))
     checks.append(_path_check("Vosk model", config.stt.vosk_model_path, is_dir=True))
+    if resolved_stt == "parakeet" or (config.stt.engine or "").lower().startswith("parakeet"):
+        checks.extend(_parakeet_checks(config.stt))
     checks.append(_path_check("Piper voice", config.tts.piper_model_path))
     checks.append(_path_check("Piper voice config", config.tts.piper_config_path))
     piper = find_piper()
@@ -27,7 +33,7 @@ def run_doctor(config):
     checks.append(("aplay command", shutil.which("aplay") is not None, shutil.which("aplay") or "missing"))
 
     for module in ("openwakeword", "vosk", "sounddevice", "cv2", "numpy", "yaml", "requests"):
-        checks.append((f"python module {module}", importlib.util.find_spec(module) is not None, ""))
+        checks.append((f"python module {module}", _module_exists(module), ""))
 
     try:
         import sounddevice as sd
@@ -51,6 +57,25 @@ def run_doctor(config):
     return checks
 
 
+def _parakeet_checks(config):
+    checks = []
+    on_pi = running_on_raspberry_pi()
+    checks.append(("Raspberry Pi Parakeet", not on_pi, "not recommended on Pi 4" if on_pi else "not Pi"))
+    for module in ("torch", "torchaudio", "nemo.collections.asr"):
+        checks.append((f"python module {module}", _module_exists(module), ""))
+
+    try:
+        import torch
+
+        cuda = torch.cuda.is_available()
+        checks.append(("Parakeet device", cuda or config.parakeet_device == "cpu", "cuda" if cuda else "cpu"))
+    except Exception as exc:
+        checks.append(("Parakeet device", False, str(exc)))
+
+    checks.append(("Parakeet model", True, config.parakeet_model))
+    return checks
+
+
 def print_doctor(checks):
     failed = False
     for name, ok, detail in checks:
@@ -64,3 +89,10 @@ def _path_check(label, path, is_dir=False):
     item = Path(path)
     ok = item.is_dir() if is_dir else item.is_file()
     return (label, ok, str(item))
+
+
+def _module_exists(module):
+    try:
+        return importlib.util.find_spec(module) is not None
+    except ModuleNotFoundError:
+        return False

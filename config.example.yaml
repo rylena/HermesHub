@@ -30,7 +30,13 @@ wake:
   cooldown_seconds: 2.0
 
 stt:
+  # auto keeps Vosk on CPU/Raspberry Pi, and uses Parakeet only when CUDA + NeMo exist.
+  # Set to "parakeet" on a CUDA machine after running scripts/install-parakeet.sh.
+  engine: "auto"
   vosk_model_path: "models/vosk-model-en-us-0.22-lgraph"
+  parakeet_model: "nvidia/parakeet-tdt-0.6b-v2"
+  parakeet_device: "auto"
+  parakeet_sample_rate: 16000
   max_utterance_seconds: 12
   no_command_timeout_seconds: 10
   silence_seconds: 0.7
