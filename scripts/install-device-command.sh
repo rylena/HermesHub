@@ -9,7 +9,10 @@ cat > "${BIN_DIR}/HermessHub" <<EOF
 #!/usr/bin/env bash
 set -euo pipefail
 cd "$ROOT"
-exec .venv/bin/hermeshub --config config.yaml run
+if [ "\$#" -eq 0 ]; then
+  set -- run
+fi
+exec .venv/bin/hermeshub --config config.yaml "\$@"
 EOF
 
 chmod +x "${BIN_DIR}/HermessHub"

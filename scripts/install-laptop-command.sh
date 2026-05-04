@@ -13,8 +13,12 @@ cat > "${BIN_DIR}/HermessHub" <<EOF
 #!/usr/bin/env bash
 set -euo pipefail
 
+if [ "\$#" -eq 0 ]; then
+  set -- run
+fi
+
 ssh -F /dev/null -i "$KEY_PATH" -o BatchMode=yes -o StrictHostKeyChecking=accept-new "$TARGET_USER@$TARGET_HOST" \\
-  'cd "$REMOTE_DIR" && exec .venv/bin/hermeshub --config config.yaml run'
+  'cd "$REMOTE_DIR" && exec .venv/bin/hermeshub --config config.yaml "\$@"' -- "\$@"
 EOF
 
 chmod +x "${BIN_DIR}/HermessHub"
