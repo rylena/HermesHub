@@ -48,6 +48,7 @@ class WakeConfig:
 class SttConfig:
     vosk_model_path: str = "models/vosk-model-small-en-us-0.15"
     max_utterance_seconds: float = 12
+    no_command_timeout_seconds: float = 10
     silence_seconds: float = 1.1
     silence_rms: int = 450
 

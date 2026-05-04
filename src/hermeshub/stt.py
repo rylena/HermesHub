@@ -35,6 +35,8 @@ class VoskSpeechRecognizer:
                 if result:
                     return result
 
+            if not heard_audio and now - started >= self.config.no_command_timeout_seconds:
+                return ""
             if heard_audio and now - last_loud >= self.config.silence_seconds:
                 break
             if now - started >= self.config.max_utterance_seconds:
