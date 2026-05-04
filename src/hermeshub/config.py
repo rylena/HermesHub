@@ -23,8 +23,9 @@ class AudioConfig:
 @dataclass
 class WakeConfig:
     enabled: bool = True
+    engine: str = "auto"
     model_names: list[str] = field(default_factory=list)
-    model_paths: list[str] = field(default_factory=lambda: ["models/hey_hermes.onnx"])
+    model_paths: list[str] = field(default_factory=list)
     phrase: str = "hey hermes"
     inference_framework: str = "onnx"
     threshold: float = 0.5

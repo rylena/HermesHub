@@ -9,8 +9,14 @@ from hermeshub.tts import find_piper
 def run_doctor(config):
     checks = []
     checks.append(("config loaded", True, "ok"))
-    for model_path in config.wake.model_paths:
-        checks.append(_path_check(f"wake model for {config.wake.phrase!r}", model_path))
+    wake_engine = config.wake.engine.lower()
+    if config.wake.model_paths:
+        for model_path in config.wake.model_paths:
+            checks.append(_path_check(f"wake model for {config.wake.phrase!r}", model_path))
+    elif wake_engine in {"auto", "vosk_keyword"}:
+        checks.append(("wake phrase", True, f"{config.wake.phrase!r} via Vosk keyword fallback"))
+    else:
+        checks.append(("wake model", False, "openwakeword selected but no model_paths/model_names set"))
     checks.append(_path_check("Vosk model", config.stt.vosk_model_path, is_dir=True))
     checks.append(_path_check("Piper voice", config.tts.piper_model_path))
     checks.append(_path_check("Piper voice config", config.tts.piper_config_path))

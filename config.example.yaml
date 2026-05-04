@@ -12,9 +12,9 @@ audio:
 
 wake:
   enabled: true
+  engine: "auto"
   model_names: []
-  model_paths:
-    - "models/hey_hermes.onnx"
+  model_paths: []
   phrase: "hey hermes"
   inference_framework: "onnx"
   threshold: 0.5

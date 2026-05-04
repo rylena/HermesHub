@@ -8,5 +8,6 @@ def test_load_config_example():
     assert config.assistant.name == "Hermes"
     assert config.audio.sample_rate == 16000
     assert config.wake.phrase == "hey hermes"
-    assert config.wake.model_paths == ["models/hey_hermes.onnx"]
+    assert config.wake.engine == "auto"
+    assert config.wake.model_paths == []
     assert config.camera.capture_dir == "data/camera"

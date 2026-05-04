@@ -5,7 +5,7 @@ from hermeshub.audio import SoundDeviceAudioSource
 from hermeshub.camera import Camera
 from hermeshub.stt import VoskSpeechRecognizer
 from hermeshub.tts import PiperSpeaker
-from hermeshub.wake import DisabledWakeDetector, WakeDetector
+from hermeshub.wake import build_wake_detector
 
 LOG = logging.getLogger(__name__)
 
@@ -14,7 +14,7 @@ class HermesHubAssistant:
     def __init__(self, config):
         self.config = config
         self.audio = SoundDeviceAudioSource(config.audio)
-        self.wake = WakeDetector(config.wake) if config.wake.enabled else DisabledWakeDetector()
+        self.wake = build_wake_detector(config.wake, config.stt, config.audio)
         self.stt = VoskSpeechRecognizer(config.stt, config.audio)
         self.tts = PiperSpeaker(config.tts)
         self.camera = Camera(config.camera)

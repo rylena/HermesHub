@@ -4,12 +4,28 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT"
 
-if ! command -v python3 >/dev/null 2>&1; then
-  echo "python3 is required" >&2
+PYTHON_BIN="${PYTHON_BIN:-}"
+if [ -z "$PYTHON_BIN" ]; then
+  for candidate in python3.12 python3.11 python3.10 python3; do
+    if command -v "$candidate" >/dev/null 2>&1; then
+      if "$candidate" - <<'PY' >/dev/null 2>&1
+import sys
+raise SystemExit(0 if (3, 10) <= sys.version_info < (3, 13) else 1)
+PY
+      then
+        PYTHON_BIN="$candidate"
+        break
+      fi
+    fi
+  done
+fi
+
+if [ -z "$PYTHON_BIN" ]; then
+  echo "Python 3.10, 3.11, or 3.12 is required." >&2
   exit 1
 fi
 
-python3 - <<'PY'
+"$PYTHON_BIN" - <<'PY'
 import sys
 
 if not ((3, 10) <= sys.version_info < (3, 13)):
@@ -17,7 +33,7 @@ if not ((3, 10) <= sys.version_info < (3, 13)):
     raise SystemExit(f"Python 3.10, 3.11, or 3.12 is required; found {version}")
 PY
 
-python3 -m venv .venv
+"$PYTHON_BIN" -m venv .venv
 . .venv/bin/activate
 python -m pip install --upgrade pip wheel setuptools
 python -m pip install -e .
