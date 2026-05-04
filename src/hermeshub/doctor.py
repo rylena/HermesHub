@@ -2,6 +2,7 @@ import importlib.util
 import shutil
 from pathlib import Path
 
+from hermeshub.audio import describe_input_device
 from hermeshub.camera import Camera
 from hermeshub.tts import find_piper
 
@@ -33,6 +34,8 @@ def run_doctor(config):
 
         devices = sd.query_devices()
         checks.append(("audio devices", bool(devices), f"{len(devices)} device entries"))
+        device, detail = describe_input_device(sd, config.audio)
+        checks.append(("audio input", device is not None or bool(devices), f"{device!r} {detail}"))
     except Exception as exc:
         checks.append(("audio devices", False, str(exc)))
 
