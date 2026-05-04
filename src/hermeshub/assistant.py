@@ -6,7 +6,7 @@ from hermeshub.audio import SoundDeviceAudioSource
 from hermeshub.sound import AckChime, WakeChime
 from hermeshub.stt import build_speech_recognizer
 from hermeshub.tts import PiperSpeaker
-from hermeshub.wake import build_wake_detector
+from hermeshub.wake import VoskPhraseDetector, build_wake_detector
 
 LOG = logging.getLogger(__name__)
 
@@ -18,6 +18,7 @@ class HermesHubAssistant:
         self.wake = build_wake_detector(config.wake, config.stt, config.audio)
         self.stt = build_speech_recognizer(config.stt, config.audio)
         self.tts = PiperSpeaker(config.tts)
+        self.interrupt_detector = self._build_interrupt_detector()
         self.chime = WakeChime(config.sound)
         self.ack = AckChime(config.sound)
         self.agent = HermesAgentClient(config.assistant)
@@ -53,7 +54,25 @@ class HermesHubAssistant:
 
             elapsed = time.monotonic() - started
             print(f"Hermes ({elapsed:.1f}s): {reply}", flush=True)
-            self.tts.speak(reply)
+            interrupted = self.tts.speak(
+                reply,
+                frames=frames,
+                interrupt_detector=self.interrupt_detector,
+            )
+            if interrupted:
+                LOG.info("speech interrupted by stop phrase")
 
             if not self.config.conversation.enabled:
                 return
+
+    def _build_interrupt_detector(self):
+        if not self.config.tts.interrupt_enabled:
+            return None
+        if not self.config.tts.interrupt_phrases:
+            return None
+        return VoskPhraseDetector(
+            self.config.stt.vosk_model_path,
+            self.config.audio.sample_rate,
+            self.config.tts.interrupt_phrases,
+            model=getattr(self.stt, "model", None),
+        )

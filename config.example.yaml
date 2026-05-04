@@ -2,6 +2,7 @@ assistant:
   name: "Hermes"
   agent_url: "http://127.0.0.1:8000"
   command: null
+  system_prompt: "You are Hermes, a voice assistant. Keep replies short, friendly, and easy to say out loud. Use one or two sentences unless the user asks for detail."
   request_timeout_seconds: 60
   fallback_reply: "I could not reach Hermes right now."
 
@@ -51,6 +52,9 @@ tts:
   piper_config_path: "voices/en_US-lessac-medium.onnx.json"
   output_wav: "data/last_reply.wav"
   speaker: null
+  interrupt_enabled: true
+  interrupt_phrases:
+    - "stop"
 
 sound:
   wake_chime_enabled: true

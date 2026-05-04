@@ -13,10 +13,14 @@ class HermesAgentClient:
         if self.config.command:
             return self._ask_command(text, image_path=image_path, wake=wake)
 
+        prompt = _prompt_with_system(text, self.config.system_prompt, image_path=image_path)
         payload = {
-            "message": text,
+            "message": prompt,
             "text": text,
             "source": "hermeshub",
+            "system": self.config.system_prompt,
+            "system_prompt": self.config.system_prompt,
+            "instructions": self.config.system_prompt,
         }
         if image_path:
             payload["image_path"] = image_path
@@ -33,9 +37,7 @@ class HermesAgentClient:
         return _reply_from_response(data)
 
     def _ask_command(self, text, image_path=None, wake=None):
-        prompt = text
-        if image_path:
-            prompt = f"{text}\n\nCamera frame path from HermesHub: {image_path}"
+        prompt = _prompt_with_system(text, self.config.system_prompt, image_path=image_path)
         command = self.config.command.format(
             prompt=shlex.quote(prompt),
             text=shlex.quote(text),
@@ -53,6 +55,17 @@ class HermesAgentClient:
             check=True,
         )
         return result.stdout.strip()
+
+
+def _prompt_with_system(text, system_prompt, image_path=None):
+    parts = []
+    if system_prompt:
+        parts.append(f"System instructions:\n{system_prompt.strip()}")
+    parts.append(f"User said:\n{text}")
+    if image_path:
+        parts.append(f"Camera frame path from HermesHub:\n{image_path}")
+    parts.append("Answer:")
+    return "\n\n".join(parts)
 
 
 def _reply_from_response(data):

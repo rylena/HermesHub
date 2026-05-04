@@ -9,6 +9,10 @@ class AssistantConfig:
     name: str = "Hermes"
     agent_url: str = "http://127.0.0.1:8000"
     command: str | None = None
+    system_prompt: str = (
+        "You are Hermes, a voice assistant. Keep replies short, friendly, and easy to say "
+        "out loud. Use one or two sentences unless the user asks for detail."
+    )
     request_timeout_seconds: int = 60
     fallback_reply: str = "I could not reach Hermes right now."
 
@@ -69,6 +73,8 @@ class TtsConfig:
     piper_config_path: str = "voices/en_US-lessac-medium.onnx.json"
     output_wav: str = "data/last_reply.wav"
     speaker: str | int | None = None
+    interrupt_enabled: bool = True
+    interrupt_phrases: list[str] = field(default_factory=lambda: ["stop"])
 
 
 @dataclass

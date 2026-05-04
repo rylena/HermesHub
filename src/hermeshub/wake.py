@@ -131,3 +131,28 @@ def _wake_phrases(wake_config):
         if normalized and normalized not in phrases:
             phrases.append(normalized)
     return phrases
+
+
+class VoskPhraseDetector:
+    def __init__(self, model_path, sample_rate, phrases, model=None):
+        from vosk import KaldiRecognizer, Model, SetLogLevel
+
+        SetLogLevel(-1)
+        self.phrases = [_normalize(phrase) for phrase in phrases if _normalize(phrase)]
+        self.model = model or Model(model_path)
+        self.recognizer = KaldiRecognizer(
+            self.model,
+            sample_rate,
+            json.dumps([*self.phrases, "[unk]"]),
+        )
+
+    def detect(self, frame):
+        if self.recognizer.AcceptWaveform(frame):
+            text = _result_text(self.recognizer.Result(), "text")
+        else:
+            text = _result_text(self.recognizer.PartialResult(), "partial")
+
+        if _matches_wake_phrase(text, self.phrases):
+            self.recognizer.Reset()
+            return {"phrase": text}
+        return None

@@ -12,3 +12,7 @@ def test_matches_wake_phrase_aliases():
 
 def test_does_not_match_unrelated_text():
     assert not _matches_wake_phrase("turn on the light", ["hermes"])
+
+
+def test_matches_stop_phrase_inside_sentence():
+    assert _matches_wake_phrase("please stop now", ["stop"])
