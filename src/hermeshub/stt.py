@@ -15,12 +15,15 @@ class VoskSpeechRecognizer:
         self.recognizer_factory = KaldiRecognizer
 
     def listen_once(self, audio_source):
+        return self.listen_once_from_frames(audio_source.frames())
+
+    def listen_once_from_frames(self, frames):
         recognizer = self.recognizer_factory(self.model, self.audio_config.sample_rate)
         started = time.monotonic()
         last_loud = started
         heard_audio = False
 
-        for frame in audio_source.frames():
+        for frame in frames:
             now = time.monotonic()
             rms = pcm16_rms(frame)
             if rms >= self.config.silence_rms:

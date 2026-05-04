@@ -32,7 +32,6 @@ class WakeConfig:
         default_factory=lambda: [
             "hermes",
             "her mes",
-            "hermies",
             "her miss",
             "her knees",
             "harness",

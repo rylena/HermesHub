@@ -24,16 +24,17 @@ class HermesHubAssistant:
 
     def run_forever(self):
         LOG.info("HermesHub listening")
-        for frame in self.audio.frames():
+        frames = self.audio.frames()
+        for frame in frames:
             wake = self.wake.detect(frame)
             if wake is None:
                 continue
-            self.handle_wake(wake)
+            self.handle_wake(wake, frames)
 
-    def handle_wake(self, wake):
+    def handle_wake(self, wake, frames):
         LOG.info("wake detected: %s", wake)
         self.chime.play()
-        text = self.stt.listen_once(self.audio)
+        text = self.stt.listen_once_from_frames(frames)
         if not text:
             LOG.info("no speech recognized")
             return
