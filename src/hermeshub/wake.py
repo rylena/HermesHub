@@ -2,8 +2,6 @@ import json
 import time
 from pathlib import Path
 
-import numpy as np
-
 
 def build_wake_detector(wake_config, stt_config, audio_config):
     if not wake_config.enabled:
@@ -39,6 +37,8 @@ class WakeDetector:
         self.last_wake = 0.0
 
     def detect(self, frame):
+        import numpy as np
+
         now = time.monotonic()
         if now - self.last_wake < self.config.cooldown_seconds:
             return None
@@ -58,7 +58,7 @@ class VoskKeywordWakeDetector:
 
         SetLogLevel(-1)
         self.config = wake_config
-        self.phrase = _normalize(wake_config.phrase)
+        self.phrases = [_normalize(item) for item in [wake_config.phrase, *wake_config.aliases] if item]
         self.model = Model(stt_config.vosk_model_path)
         self.recognizer = KaldiRecognizer(self.model, audio_config.sample_rate)
         self.last_wake = 0.0
@@ -73,7 +73,7 @@ class VoskKeywordWakeDetector:
         else:
             text = _result_text(self.recognizer.PartialResult(), "partial")
 
-        if self.phrase and self.phrase in _normalize(text):
+        if _matches_wake_phrase(text, self.phrases):
             self.last_wake = now
             self.recognizer.Reset()
             return {"name": self.config.phrase, "score": 1.0, "engine": "vosk_keyword"}
@@ -100,3 +100,18 @@ def _result_text(raw, key):
 
 def _normalize(text):
     return " ".join(text.lower().strip().split())
+
+
+def _compact(text):
+    return _normalize(text).replace(" ", "")
+
+
+def _matches_wake_phrase(text, phrases):
+    normalized = _normalize(text)
+    compact = _compact(text)
+    for phrase in phrases:
+        if phrase and phrase in normalized:
+            return True
+        if phrase and _compact(phrase) in compact:
+            return True
+    return False

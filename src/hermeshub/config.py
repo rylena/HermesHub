@@ -15,7 +15,7 @@ class AssistantConfig:
 
 @dataclass
 class AudioConfig:
-    sample_rate: int = 16000
+    sample_rate: int = 44100
     channels: int = 1
     block_ms: int = 80
     input_device: str | int | None = None
@@ -27,7 +27,10 @@ class WakeConfig:
     engine: str = "auto"
     model_names: list[str] = field(default_factory=list)
     model_paths: list[str] = field(default_factory=list)
-    phrase: str = "hey hermes"
+    phrase: str = "hermes"
+    aliases: list[str] = field(
+        default_factory=lambda: ["hermes", "her mes", "hermies", "her miss"]
+    )
     inference_framework: str = "onnx"
     threshold: float = 0.5
     vad_threshold: float | None = 0.5

@@ -14,7 +14,8 @@ def run_doctor(config):
         for model_path in config.wake.model_paths:
             checks.append(_path_check(f"wake model for {config.wake.phrase!r}", model_path))
     elif wake_engine in {"auto", "vosk_keyword"}:
-        checks.append(("wake phrase", True, f"{config.wake.phrase!r} via Vosk keyword fallback"))
+        aliases = ", ".join(config.wake.aliases)
+        checks.append(("wake phrase", True, f"{config.wake.phrase!r} via Vosk keyword fallback ({aliases})"))
     else:
         checks.append(("wake model", False, "openwakeword selected but no model_paths/model_names set"))
     checks.append(_path_check("Vosk model", config.stt.vosk_model_path, is_dir=True))
