@@ -107,6 +107,19 @@ def test_auto_stt_engine_prefers_vosk_without_cuda(monkeypatch):
 
     class Config:
         engine = "auto"
+        sherpa_model_dir = "unused"
+        sherpa_int8 = True
 
+    monkeypatch.setattr("hermeshub.stt._sherpa_available", lambda _config: False)
     monkeypatch.setattr("hermeshub.stt._parakeet_can_run_accelerated", lambda: False)
     assert describe_stt_engine(Config())[0] == "vosk"
+
+
+def test_auto_stt_engine_prefers_sherpa_when_available(monkeypatch):
+    from hermeshub.stt import describe_stt_engine
+
+    class Config:
+        engine = "auto"
+
+    monkeypatch.setattr("hermeshub.stt._sherpa_available", lambda _config: True)
+    assert describe_stt_engine(Config())[0] == "sherpa"

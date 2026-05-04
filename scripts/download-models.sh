@@ -32,6 +32,8 @@ else
   echo "exists: models/vosk-model-en-us-0.22-lgraph"
 fi
 
+scripts/download-sherpa-test-model.sh
+
 download "https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/lessac/medium/en_US-lessac-medium.onnx" "voices/en_US-lessac-medium.onnx"
 download "https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/lessac/medium/en_US-lessac-medium.onnx.json" "voices/en_US-lessac-medium.onnx.json"
 

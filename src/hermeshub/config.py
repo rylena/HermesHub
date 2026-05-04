@@ -50,8 +50,11 @@ class WakeConfig:
 
 @dataclass
 class SttConfig:
-    engine: str = "auto"
+    engine: str = "sherpa"
     vosk_model_path: str = "models/vosk-model-en-us-0.22-lgraph"
+    sherpa_model_dir: str = "models/sherpa-onnx-streaming-zipformer-en-20M-2023-02-17"
+    sherpa_threads: int = 2
+    sherpa_int8: bool = True
     parakeet_model: str = "nvidia/parakeet-tdt-0.6b-v2"
     parakeet_device: str = "auto"
     parakeet_sample_rate: int = 16000

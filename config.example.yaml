@@ -31,10 +31,13 @@ wake:
   cooldown_seconds: 2.0
 
 stt:
-  # auto keeps Vosk on CPU/Raspberry Pi, and uses Parakeet only when CUDA + NeMo exist.
-  # Set to "parakeet" on a CUDA machine after running scripts/install-parakeet.sh.
-  engine: "auto"
+  # Sherpa uses the CPU-friendly streaming Zipformer model. Vosk is still used
+  # for the wake word fallback and spoken "stop" interruption.
+  engine: "sherpa"
   vosk_model_path: "models/vosk-model-en-us-0.22-lgraph"
+  sherpa_model_dir: "models/sherpa-onnx-streaming-zipformer-en-20M-2023-02-17"
+  sherpa_threads: 2
+  sherpa_int8: true
   parakeet_model: "nvidia/parakeet-tdt-0.6b-v2"
   parakeet_device: "auto"
   parakeet_sample_rate: 16000

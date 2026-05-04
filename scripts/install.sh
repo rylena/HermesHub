@@ -37,6 +37,7 @@ PY
 . .venv/bin/activate
 python -m pip install --upgrade pip wheel setuptools
 python -m pip install -e .
+python -m pip install "sherpa-onnx>=1.13"
 python -m pip install "onnxruntime>=1.10,<2" "tqdm>=4,<5" "scipy>=1.3,<2" "scikit-learn>=1,<2"
 python -m pip install --no-deps "openwakeword>=0.6,<0.7"
 
@@ -50,5 +51,6 @@ echo
 echo "HermesHub installed."
 echo "Next:"
 echo "  scripts/download-models.sh"
+echo "  scripts/download-sherpa-test-model.sh"
 echo "  .venv/bin/hermeshub doctor"
 echo "  .venv/bin/hermeshub --config config.yaml run"

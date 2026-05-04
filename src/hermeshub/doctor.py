@@ -24,6 +24,8 @@ def run_doctor(config):
     resolved_stt, stt_detail = describe_stt_engine(config.stt)
     checks.append(("STT engine", True, f"{resolved_stt} ({stt_detail})"))
     checks.append(_path_check("Vosk model", config.stt.vosk_model_path, is_dir=True))
+    if resolved_stt == "sherpa":
+        checks.extend(_sherpa_checks(config.stt))
     if resolved_stt == "parakeet" or (config.stt.engine or "").lower().startswith("parakeet"):
         checks.extend(_parakeet_checks(config.stt))
     checks.append(_path_check("Piper voice", config.tts.piper_model_path))
@@ -73,6 +75,22 @@ def _parakeet_checks(config):
         checks.append(("Parakeet device", False, str(exc)))
 
     checks.append(("Parakeet model", True, config.parakeet_model))
+    return checks
+
+
+def _sherpa_checks(config):
+    checks = []
+    checks.append(("python module sherpa_onnx", _module_exists("sherpa_onnx"), ""))
+    checks.append(_path_check("Sherpa model dir", config.sherpa_model_dir, is_dir=True))
+    root = Path(config.sherpa_model_dir)
+    suffix = ".int8.onnx" if config.sherpa_int8 else ".onnx"
+    for label, path in (
+        ("Sherpa tokens", root / "tokens.txt"),
+        ("Sherpa encoder", root / f"encoder-epoch-99-avg-1{suffix}"),
+        ("Sherpa decoder", root / "decoder-epoch-99-avg-1.onnx"),
+        ("Sherpa joiner", root / f"joiner-epoch-99-avg-1{suffix}"),
+    ):
+        checks.append(_path_check(label, path))
     return checks
 
 

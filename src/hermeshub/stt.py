@@ -6,10 +6,17 @@ from pathlib import Path
 from types import SimpleNamespace
 
 from hermeshub.audio import pcm16_rms
+from hermeshub.sherpa_test import (
+    SHERPA_SAMPLE_RATE,
+    build_sherpa_recognizer,
+    pcm16_to_float32,
+)
 
 
 def build_speech_recognizer(config, audio_config):
     engine = _resolve_stt_engine(config)
+    if engine == "sherpa":
+        return SherpaSpeechRecognizer(config, audio_config)
     if engine == "parakeet":
         return ParakeetSpeechRecognizer(config, audio_config)
     if engine == "vosk":
@@ -22,6 +29,8 @@ def describe_stt_engine(config):
     resolved = _resolve_stt_engine(config)
     if requested != "auto":
         return resolved, requested
+    if resolved == "sherpa":
+        return resolved, "auto selected Sherpa for fast local CPU/Raspberry Pi operation"
     if resolved == "parakeet":
         return resolved, "auto selected Parakeet because CUDA and NeMo are available"
     return resolved, "auto selected Vosk for fast local CPU/Raspberry Pi operation"
@@ -112,6 +121,55 @@ class ParakeetSpeechRecognizer:
         return _extract_parakeet_text(output)
 
 
+class SherpaSpeechRecognizer:
+    def __init__(self, config, audio_config):
+        self.config = config
+        self.audio_config = audio_config
+        self.recognizer = build_sherpa_recognizer(
+            model_dir=config.sherpa_model_dir,
+            threads=config.sherpa_threads,
+            int8=config.sherpa_int8,
+        )
+
+    def listen_once(self, audio_source, on_audio_captured=None):
+        return self.listen_once_from_frames(audio_source.frames(), on_audio_captured=on_audio_captured)
+
+    def listen_once_from_frames(self, frames, on_audio_captured=None):
+        stream = self.recognizer.create_stream()
+        started = time.monotonic()
+        last_loud = started
+        heard_audio = False
+
+        for frame in frames:
+            now = time.monotonic()
+            rms = pcm16_rms(frame)
+            if rms >= self.config.silence_rms:
+                heard_audio = True
+                last_loud = now
+
+            if heard_audio:
+                samples = pcm16_to_float32(frame, self.audio_config.sample_rate)
+                stream.accept_waveform(SHERPA_SAMPLE_RATE, samples)
+                while self.recognizer.is_ready(stream):
+                    self.recognizer.decode_stream(stream)
+
+            if not heard_audio and now - started >= self.config.no_command_timeout_seconds:
+                return ""
+            if heard_audio and now - last_loud >= self.config.silence_seconds:
+                break
+            if now - started >= self.config.max_utterance_seconds:
+                break
+
+        _notify_audio_captured(heard_audio, on_audio_captured)
+        if not heard_audio:
+            return ""
+
+        stream.input_finished()
+        while self.recognizer.is_ready(stream):
+            self.recognizer.decode_stream(stream)
+        return self.recognizer.get_result(stream).strip()
+
+
 def _parse_result(raw):
     try:
         parsed = json.loads(raw)
@@ -122,11 +180,13 @@ def _parse_result(raw):
 
 def _resolve_stt_engine(config):
     engine = (config.engine or "auto").lower()
-    if engine in {"vosk", "parakeet"}:
+    if engine in {"vosk", "parakeet", "sherpa"}:
         return engine
     if engine in {"parakeet_v2", "parakeet-v2", "nvidia_parakeet"}:
         return "parakeet"
     if engine == "auto":
+        if _sherpa_available(config):
+            return "sherpa"
         if _parakeet_can_run_accelerated():
             return "parakeet"
         return "vosk"
@@ -140,6 +200,20 @@ def _parakeet_can_run_accelerated():
     except ImportError:
         return False
     return bool(torch.cuda.is_available())
+
+
+def _sherpa_available(config):
+    try:
+        import sherpa_onnx  # noqa: F401
+    except ImportError:
+        return False
+    try:
+        from hermeshub.sherpa_test import sherpa_model_paths
+
+        sherpa_model_paths(config.sherpa_model_dir, int8=config.sherpa_int8)
+    except OSError:
+        return False
+    return True
 
 
 def _select_parakeet_device(device):
