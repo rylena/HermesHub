@@ -70,10 +70,10 @@ class SoundConfig:
 
 @dataclass
 class CameraConfig:
-    enabled: bool = True
+    enabled: bool = False
     device_index: int | str = 0
     capture_dir: str = "data/camera"
-    include_frame_with_prompt: bool = True
+    include_frame_with_prompt: bool = False
     jpeg_quality: int = 90
 
 

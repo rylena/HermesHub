@@ -2,7 +2,6 @@ import logging
 
 from hermeshub.agent import HermesAgentClient
 from hermeshub.audio import SoundDeviceAudioSource
-from hermeshub.camera import Camera
 from hermeshub.sound import WakeChime
 from hermeshub.stt import VoskSpeechRecognizer
 from hermeshub.tts import PiperSpeaker
@@ -19,7 +18,6 @@ class HermesHubAssistant:
         self.stt = VoskSpeechRecognizer(config.stt, config.audio)
         self.tts = PiperSpeaker(config.tts)
         self.chime = WakeChime(config.sound)
-        self.camera = Camera(config.camera)
         self.agent = HermesAgentClient(config.assistant)
 
     def run_forever(self):
@@ -38,15 +36,13 @@ class HermesHubAssistant:
         if not text:
             LOG.info("no speech recognized")
             return
-
-        image_path = None
-        if self.config.camera.include_frame_with_prompt:
-            image_path = self.camera.capture()
+        print(f"You: {text}", flush=True)
 
         try:
-            reply = self.agent.ask(text, image_path=image_path, wake=wake)
+            reply = self.agent.ask(text, wake=wake)
         except Exception as exc:
             LOG.warning("agent request failed: %s", exc)
             reply = self.config.assistant.fallback_reply
 
+        print(f"Hermes: {reply}", flush=True)
         self.tts.speak(reply)

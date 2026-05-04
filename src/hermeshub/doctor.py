@@ -39,11 +39,14 @@ def run_doctor(config):
     except Exception as exc:
         checks.append(("audio devices", False, str(exc)))
 
-    try:
-        camera_ok = Camera(config.camera).can_open()
-        checks.append(("camera", camera_ok, f"device {config.camera.device_index}"))
-    except Exception as exc:
-        checks.append(("camera", False, str(exc)))
+    if config.camera.enabled:
+        try:
+            camera_ok = Camera(config.camera).can_open()
+            checks.append(("camera", camera_ok, f"device {config.camera.device_index}"))
+        except Exception as exc:
+            checks.append(("camera", False, str(exc)))
+    else:
+        checks.append(("camera", True, "disabled"))
 
     return checks
 

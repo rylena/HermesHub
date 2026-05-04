@@ -48,8 +48,8 @@ sound:
   wake_chime_volume: 0.35
 
 camera:
-  enabled: true
+  enabled: false
   device_index: 0
   capture_dir: "data/camera"
-  include_frame_with_prompt: true
+  include_frame_with_prompt: false
   jpeg_quality: 90

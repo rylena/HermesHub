@@ -45,9 +45,14 @@ def main(argv=None):
         PiperSpeaker(config.tts).speak(args.text)
         return 0
     if args.command == "ask":
-        print(HermesAgentClient(config.assistant).ask(args.text))
+        print(f"You: {args.text}", flush=True)
+        reply = HermesAgentClient(config.assistant).ask(args.text)
+        print(f"Hermes: {reply}", flush=True)
         return 0
     if args.command == "capture":
+        if not config.camera.enabled:
+            print("camera disabled", file=sys.stderr)
+            return 1
         path = Camera(config.camera).capture()
         if path:
             print(path)
