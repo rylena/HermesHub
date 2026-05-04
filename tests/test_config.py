@@ -12,5 +12,7 @@ def test_load_config_example():
     assert "her knees" in config.wake.aliases
     assert config.wake.engine == "auto"
     assert config.wake.model_paths == []
+    assert config.conversation.enabled is True
+    assert config.stt.silence_seconds == 0.7
     assert config.sound.wake_chime_enabled is True
     assert config.camera.capture_dir == "data/camera"

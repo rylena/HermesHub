@@ -1,8 +1,9 @@
 import logging
+import time
 
 from hermeshub.agent import HermesAgentClient
 from hermeshub.audio import SoundDeviceAudioSource
-from hermeshub.sound import WakeChime
+from hermeshub.sound import AckChime, WakeChime
 from hermeshub.stt import VoskSpeechRecognizer
 from hermeshub.tts import PiperSpeaker
 from hermeshub.wake import build_wake_detector
@@ -18,6 +19,7 @@ class HermesHubAssistant:
         self.stt = VoskSpeechRecognizer(config.stt, config.audio)
         self.tts = PiperSpeaker(config.tts)
         self.chime = WakeChime(config.sound)
+        self.ack = AckChime(config.sound)
         self.agent = HermesAgentClient(config.assistant)
 
     def run_forever(self):
@@ -32,17 +34,27 @@ class HermesHubAssistant:
     def handle_wake(self, wake, frames):
         LOG.info("wake detected: %s", wake)
         self.chime.play()
-        text = self.stt.listen_once_from_frames(frames)
-        if not text:
-            LOG.info("no speech recognized")
-            return
-        print(f"You: {text}", flush=True)
+        self.conversation_loop(wake, frames)
 
-        try:
-            reply = self.agent.ask(text, wake=wake)
-        except Exception as exc:
-            LOG.warning("agent request failed: %s", exc)
-            reply = self.config.assistant.fallback_reply
+    def conversation_loop(self, wake, frames):
+        while True:
+            text = self.stt.listen_once_from_frames(frames)
+            if not text:
+                LOG.info("no speech recognized")
+                return
+            self.ack.play()
+            print(f"You: {text}", flush=True)
 
-        print(f"Hermes: {reply}", flush=True)
-        self.tts.speak(reply)
+            started = time.monotonic()
+            try:
+                reply = self.agent.ask(text, wake=wake)
+            except Exception as exc:
+                LOG.warning("agent request failed: %s", exc)
+                reply = self.config.assistant.fallback_reply
+
+            elapsed = time.monotonic() - started
+            print(f"Hermes ({elapsed:.1f}s): {reply}", flush=True)
+            self.tts.speak(reply)
+
+            if not self.config.conversation.enabled:
+                return

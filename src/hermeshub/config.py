@@ -49,8 +49,14 @@ class SttConfig:
     vosk_model_path: str = "models/vosk-model-en-us-0.22-lgraph"
     max_utterance_seconds: float = 12
     no_command_timeout_seconds: float = 10
-    silence_seconds: float = 1.1
+    silence_seconds: float = 0.7
     silence_rms: int = 450
+
+
+@dataclass
+class ConversationConfig:
+    enabled: bool = True
+    followup_timeout_seconds: float = 10
 
 
 @dataclass
@@ -66,6 +72,9 @@ class SoundConfig:
     wake_chime_enabled: bool = True
     wake_chime_wav: str = "data/wake_chime.wav"
     wake_chime_volume: float = 0.35
+    ack_chime_enabled: bool = True
+    ack_chime_wav: str = "data/ack_chime.wav"
+    ack_chime_volume: float = 0.28
 
 
 @dataclass
@@ -83,6 +92,7 @@ class AppConfig:
     audio: AudioConfig = field(default_factory=AudioConfig)
     wake: WakeConfig = field(default_factory=WakeConfig)
     stt: SttConfig = field(default_factory=SttConfig)
+    conversation: ConversationConfig = field(default_factory=ConversationConfig)
     tts: TtsConfig = field(default_factory=TtsConfig)
     sound: SoundConfig = field(default_factory=SoundConfig)
     camera: CameraConfig = field(default_factory=CameraConfig)
@@ -110,6 +120,7 @@ def load_config(path):
         audio=AudioConfig(**_section(raw, "audio")),
         wake=WakeConfig(**_section(raw, "wake")),
         stt=SttConfig(**_section(raw, "stt")),
+        conversation=ConversationConfig(**_section(raw, "conversation")),
         tts=TtsConfig(**_section(raw, "tts")),
         sound=SoundConfig(**_section(raw, "sound")),
         camera=CameraConfig(**_section(raw, "camera")),

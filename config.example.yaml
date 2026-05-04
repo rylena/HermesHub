@@ -33,8 +33,12 @@ stt:
   vosk_model_path: "models/vosk-model-en-us-0.22-lgraph"
   max_utterance_seconds: 12
   no_command_timeout_seconds: 10
-  silence_seconds: 1.1
+  silence_seconds: 0.7
   silence_rms: 450
+
+conversation:
+  enabled: true
+  followup_timeout_seconds: 10
 
 tts:
   piper_model_path: "voices/en_US-lessac-medium.onnx"
@@ -46,6 +50,9 @@ sound:
   wake_chime_enabled: true
   wake_chime_wav: "data/wake_chime.wav"
   wake_chime_volume: 0.35
+  ack_chime_enabled: true
+  ack_chime_wav: "data/ack_chime.wav"
+  ack_chime_volume: 0.28
 
 camera:
   enabled: false

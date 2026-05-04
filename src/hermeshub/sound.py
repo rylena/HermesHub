@@ -23,6 +23,23 @@ class WakeChime:
         return str(output)
 
 
+class AckChime:
+    def __init__(self, config):
+        self.config = config
+
+    def play(self):
+        if not self.config.ack_chime_enabled:
+            return None
+
+        output = Path(self.config.ack_chime_wav)
+        if not output.is_file():
+            write_ack_chime(output, volume=self.config.ack_chime_volume)
+
+        if shutil.which("aplay"):
+            subprocess.run(["aplay", "-q", str(output)], check=False)
+        return str(output)
+
+
 def write_wake_chime(path, volume=0.35, sample_rate=44100):
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
@@ -43,6 +60,33 @@ def write_wake_chime(path, volume=0.35, sample_rate=44100):
             sample = math.sin(2 * math.pi * frequency * t) + overtone
             samples.append(sample * envelope * volume)
         samples.extend([0.0] * int(sample_rate * gap_seconds))
+
+    with wave.open(str(path), "wb") as handle:
+        handle.setnchannels(1)
+        handle.setsampwidth(2)
+        handle.setframerate(sample_rate)
+        frames = b"".join(struct.pack("<h", _to_pcm16(sample)) for sample in samples)
+        handle.writeframes(frames)
+    return str(path)
+
+
+def write_ack_chime(path, volume=0.28, sample_rate=44100):
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+
+    notes = [
+        (1046.5, 0.055),
+        (1318.51, 0.08),
+    ]
+    samples = []
+    for frequency, duration in notes:
+        count = int(sample_rate * duration)
+        for index in range(count):
+            t = index / sample_rate
+            envelope = _envelope(index, count)
+            sample = math.sin(2 * math.pi * frequency * t)
+            samples.append(sample * envelope * volume)
+        samples.extend([0.0] * int(sample_rate * 0.012))
 
     with wave.open(str(path), "wb") as handle:
         handle.setnchannels(1)
