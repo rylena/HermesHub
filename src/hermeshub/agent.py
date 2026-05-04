@@ -1,3 +1,4 @@
+import base64
 import shlex
 import subprocess
 
@@ -38,6 +39,8 @@ class HermesAgentClient:
         command = self.config.command.format(
             prompt=shlex.quote(prompt),
             text=shlex.quote(text),
+            prompt_b64=base64.b64encode(prompt.encode("utf-8")).decode("ascii"),
+            text_b64=base64.b64encode(text.encode("utf-8")).decode("ascii"),
             image_path=shlex.quote(image_path or ""),
             wake=shlex.quote(str(wake or "")),
         )
