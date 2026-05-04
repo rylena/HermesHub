@@ -15,4 +15,5 @@ voices/
 *.jsonl
 
 .env
+config.yaml
 .DS_Store
