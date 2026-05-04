@@ -97,6 +97,38 @@ def write_ack_chime(path, volume=0.28, sample_rate=44100):
     return str(path)
 
 
+def write_alarm_ringtone(path, volume=0.55, sample_rate=44100):
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+
+    notes = [
+        (880.0, 0.18),
+        (1174.66, 0.18),
+        (880.0, 0.18),
+        (1174.66, 0.32),
+    ]
+    samples = []
+    for _repeat in range(3):
+        for frequency, duration in notes:
+            count = int(sample_rate * duration)
+            for index in range(count):
+                t = index / sample_rate
+                envelope = _envelope(index, count)
+                pulse = 0.65 + 0.35 * math.sin(2 * math.pi * 7 * t)
+                sample = math.sin(2 * math.pi * frequency * t) * pulse
+                samples.append(sample * envelope * volume)
+            samples.extend([0.0] * int(sample_rate * 0.04))
+        samples.extend([0.0] * int(sample_rate * 0.15))
+
+    with wave.open(str(path), "wb") as handle:
+        handle.setnchannels(1)
+        handle.setsampwidth(2)
+        handle.setframerate(sample_rate)
+        frames = b"".join(struct.pack("<h", _to_pcm16(sample)) for sample in samples)
+        handle.writeframes(frames)
+    return str(path)
+
+
 def _envelope(index, total):
     attack = max(1, int(total * 0.18))
     release = max(1, int(total * 0.35))

@@ -1,6 +1,6 @@
 import wave
 
-from hermeshub.sound import write_ack_chime, write_wake_chime
+from hermeshub.sound import write_ack_chime, write_alarm_ringtone, write_wake_chime
 
 
 def test_write_wake_chime(tmp_path):
@@ -21,3 +21,13 @@ def test_write_ack_chime(tmp_path):
         assert handle.getnchannels() == 1
         assert handle.getframerate() == 44100
         assert handle.getnframes() > 1000
+
+
+def test_write_alarm_ringtone(tmp_path):
+    output = tmp_path / "alarm.wav"
+    write_alarm_ringtone(output)
+
+    with wave.open(str(output), "rb") as handle:
+        assert handle.getnchannels() == 1
+        assert handle.getframerate() == 44100
+        assert handle.getnframes() > 10_000

@@ -3,6 +3,7 @@ import time
 
 from hermeshub.agent import HermesAgentClient, is_backend_error
 from hermeshub.audio import SoundDeviceAudioSource
+from hermeshub.clock import ClockManager
 from hermeshub.sound import AckChime, WakeChime
 from hermeshub.stt import build_speech_recognizer, describe_stt_engine
 from hermeshub.tts import PiperSpeaker
@@ -22,23 +23,29 @@ class HermesHubAssistant:
         self.chime = WakeChime(config.sound)
         self.ack = AckChime(config.sound)
         self.agent = HermesAgentClient(config.assistant)
+        self.clock = ClockManager(config.clock)
 
     def run_forever(self):
         stt_engine, stt_detail = describe_stt_engine(self.config.stt)
         agent_mode = "command" if self.config.assistant.command else self.config.assistant.agent_url
         LOG.info(
-            "HermesHub listening (wake=%s, stt=%s:%s, agent=%s)",
+            "HermesHub listening (wake=%s, stt=%s:%s, agent=%s, clock=%s)",
             self.config.wake.engine,
             stt_engine,
             stt_detail,
             agent_mode,
+            "on" if self.config.clock.enabled else "off",
         )
+        self.clock.start()
         frames = self.audio.frames()
-        for frame in frames:
-            wake = self.wake.detect(frame)
-            if wake is None:
-                continue
-            self.handle_wake(wake, frames)
+        try:
+            for frame in frames:
+                wake = self.wake.detect(frame)
+                if wake is None:
+                    continue
+                self.handle_wake(wake, frames)
+        finally:
+            self.clock.stop()
 
     def handle_wake(self, wake, frames):
         LOG.info("wake detected: %s", wake)
@@ -54,14 +61,16 @@ class HermesHubAssistant:
             print(f"You: {text}", flush=True)
 
             started = time.monotonic()
-            try:
-                reply = self.agent.ask(text, wake=wake)
-            except Exception as exc:
-                LOG.warning("agent request failed: %s", exc)
-                reply = self.config.assistant.fallback_reply
-            if is_backend_error(reply):
-                LOG.warning("agent returned backend error: %s", reply)
-                reply = self.config.assistant.fallback_reply
+            reply = self.clock.handle_text(text)
+            if reply is None:
+                try:
+                    reply = self.agent.ask(text, wake=wake)
+                except Exception as exc:
+                    LOG.warning("agent request failed: %s", exc)
+                    reply = self.config.assistant.fallback_reply
+                if is_backend_error(reply):
+                    LOG.warning("agent returned backend error: %s", reply)
+                    reply = self.config.assistant.fallback_reply
 
             elapsed = time.monotonic() - started
             print(f"Hermes ({elapsed:.1f}s): {reply}", flush=True)

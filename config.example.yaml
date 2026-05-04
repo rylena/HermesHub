@@ -75,6 +75,14 @@ sound:
   ack_chime_wav: "data/ack_chime.wav"
   ack_chime_volume: 0.28
 
+clock:
+  enabled: true
+  state_path: "data/clock.json"
+  ringtone_wav: "data/alarm_ringtone.wav"
+  ringtone_volume: 0.55
+  check_interval_seconds: 0.5
+  max_ring_seconds: 300
+
 camera:
   enabled: false
   device_index: 0

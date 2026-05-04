@@ -15,4 +15,6 @@ def test_load_config_example():
     assert config.conversation.enabled is True
     assert config.stt.silence_seconds == 0.7
     assert config.sound.wake_chime_enabled is True
+    assert config.clock.enabled is True
+    assert config.clock.ringtone_wav == "data/alarm_ringtone.wav"
     assert config.camera.capture_dir == "data/camera"

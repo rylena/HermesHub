@@ -98,6 +98,16 @@ class SoundConfig:
 
 
 @dataclass
+class ClockConfig:
+    enabled: bool = True
+    state_path: str = "data/clock.json"
+    ringtone_wav: str = "data/alarm_ringtone.wav"
+    ringtone_volume: float = 0.55
+    check_interval_seconds: float = 0.5
+    max_ring_seconds: float = 300
+
+
+@dataclass
 class CameraConfig:
     enabled: bool = False
     device_index: int | str = 0
@@ -115,6 +125,7 @@ class AppConfig:
     conversation: ConversationConfig = field(default_factory=ConversationConfig)
     tts: TtsConfig = field(default_factory=TtsConfig)
     sound: SoundConfig = field(default_factory=SoundConfig)
+    clock: ClockConfig = field(default_factory=ClockConfig)
     camera: CameraConfig = field(default_factory=CameraConfig)
 
 
@@ -143,5 +154,6 @@ def load_config(path):
         conversation=ConversationConfig(**_section(raw, "conversation")),
         tts=TtsConfig(**_section(raw, "tts")),
         sound=SoundConfig(**_section(raw, "sound")),
+        clock=ClockConfig(**_section(raw, "clock")),
         camera=CameraConfig(**_section(raw, "camera")),
     )
