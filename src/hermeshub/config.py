@@ -46,7 +46,7 @@ class WakeConfig:
 
 @dataclass
 class SttConfig:
-    vosk_model_path: str = "models/vosk-model-small-en-us-0.15"
+    vosk_model_path: str = "models/vosk-model-en-us-0.22-lgraph"
     max_utterance_seconds: float = 12
     no_command_timeout_seconds: float = 10
     silence_seconds: float = 1.1

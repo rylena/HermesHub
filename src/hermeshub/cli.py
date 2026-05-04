@@ -7,6 +7,7 @@ from hermeshub.assistant import HermesHubAssistant
 from hermeshub.camera import Camera
 from hermeshub.config import load_config
 from hermeshub.doctor import print_doctor, run_doctor
+from hermeshub.listen_test import run_listen_test
 from hermeshub.sound import WakeChime
 from hermeshub.tts import PiperSpeaker
 from hermeshub.wake_test import run_wake_test
@@ -31,6 +32,7 @@ def main(argv=None):
     sub.add_parser("chime")
     wake_test_parser = sub.add_parser("wake-test")
     wake_test_parser.add_argument("--seconds", type=float, default=12)
+    sub.add_parser("listen-test")
 
     args = parser.parse_args(argv)
     logging.basicConfig(level=getattr(logging, args.log_level.upper(), logging.INFO))
@@ -68,6 +70,8 @@ def main(argv=None):
         return 0
     if args.command == "wake-test":
         return run_wake_test(config, args.seconds)
+    if args.command == "listen-test":
+        return run_listen_test(config)
     return 2
 
 

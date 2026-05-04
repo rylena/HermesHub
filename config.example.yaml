@@ -30,7 +30,7 @@ wake:
   cooldown_seconds: 2.0
 
 stt:
-  vosk_model_path: "models/vosk-model-small-en-us-0.15"
+  vosk_model_path: "models/vosk-model-en-us-0.22-lgraph"
   max_utterance_seconds: 12
   no_command_timeout_seconds: 10
   silence_seconds: 1.1

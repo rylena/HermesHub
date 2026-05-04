@@ -17,19 +17,19 @@ download() {
   curl -L --fail --retry 3 -o "$target" "$url"
 }
 
-if [ ! -d models/vosk-model-small-en-us-0.15 ]; then
-  download "https://alphacephei.com/vosk/models/vosk-model-small-en-us-0.15.zip" "/tmp/hermeshub-models/vosk-model-small-en-us-0.15.zip"
+if [ ! -d models/vosk-model-en-us-0.22-lgraph ]; then
+  download "https://alphacephei.com/vosk/models/vosk-model-en-us-0.22-lgraph.zip" "/tmp/hermeshub-models/vosk-model-en-us-0.22-lgraph.zip"
   python3 - <<'PY'
 from pathlib import Path
 from zipfile import ZipFile
 
-archive = Path("/tmp/hermeshub-models/vosk-model-small-en-us-0.15.zip")
+archive = Path("/tmp/hermeshub-models/vosk-model-en-us-0.22-lgraph.zip")
 target = Path("models")
 with ZipFile(archive) as zf:
     zf.extractall(target)
 PY
 else
-  echo "exists: models/vosk-model-small-en-us-0.15"
+  echo "exists: models/vosk-model-en-us-0.22-lgraph"
 fi
 
 download "https://huggingface.co/rhasspy/piper-voices/resolve/main/en/en_US/lessac/medium/en_US-lessac-medium.onnx" "voices/en_US-lessac-medium.onnx"
