@@ -51,6 +51,13 @@ class TtsConfig:
 
 
 @dataclass
+class SoundConfig:
+    wake_chime_enabled: bool = True
+    wake_chime_wav: str = "data/wake_chime.wav"
+    wake_chime_volume: float = 0.35
+
+
+@dataclass
 class CameraConfig:
     enabled: bool = True
     device_index: int | str = 0
@@ -66,6 +73,7 @@ class AppConfig:
     wake: WakeConfig = field(default_factory=WakeConfig)
     stt: SttConfig = field(default_factory=SttConfig)
     tts: TtsConfig = field(default_factory=TtsConfig)
+    sound: SoundConfig = field(default_factory=SoundConfig)
     camera: CameraConfig = field(default_factory=CameraConfig)
 
 
@@ -92,5 +100,6 @@ def load_config(path):
         wake=WakeConfig(**_section(raw, "wake")),
         stt=SttConfig(**_section(raw, "stt")),
         tts=TtsConfig(**_section(raw, "tts")),
+        sound=SoundConfig(**_section(raw, "sound")),
         camera=CameraConfig(**_section(raw, "camera")),
     )

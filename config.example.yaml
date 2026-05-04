@@ -34,6 +34,11 @@ tts:
   output_wav: "data/last_reply.wav"
   speaker: null
 
+sound:
+  wake_chime_enabled: true
+  wake_chime_wav: "data/wake_chime.wav"
+  wake_chime_volume: 0.35
+
 camera:
   enabled: true
   device_index: 0

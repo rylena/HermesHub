@@ -7,6 +7,7 @@ from hermeshub.assistant import HermesHubAssistant
 from hermeshub.camera import Camera
 from hermeshub.config import load_config
 from hermeshub.doctor import print_doctor, run_doctor
+from hermeshub.sound import WakeChime
 from hermeshub.tts import PiperSpeaker
 
 
@@ -26,6 +27,7 @@ def main(argv=None):
     ask_parser.add_argument("text")
 
     sub.add_parser("capture")
+    sub.add_parser("chime")
 
     args = parser.parse_args(argv)
     logging.basicConfig(level=getattr(logging, args.log_level.upper(), logging.INFO))
@@ -49,6 +51,13 @@ def main(argv=None):
             return 0
         print("camera capture failed", file=sys.stderr)
         return 1
+    if args.command == "chime":
+        path = WakeChime(config.sound).play()
+        if path:
+            print(path)
+            return 0
+        print("wake chime disabled")
+        return 0
     return 2
 
 

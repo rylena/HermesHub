@@ -10,4 +10,5 @@ def test_load_config_example():
     assert config.wake.phrase == "hey hermes"
     assert config.wake.engine == "auto"
     assert config.wake.model_paths == []
+    assert config.sound.wake_chime_enabled is True
     assert config.camera.capture_dir == "data/camera"

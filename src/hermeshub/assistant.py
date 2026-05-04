@@ -3,6 +3,7 @@ import logging
 from hermeshub.agent import HermesAgentClient
 from hermeshub.audio import SoundDeviceAudioSource
 from hermeshub.camera import Camera
+from hermeshub.sound import WakeChime
 from hermeshub.stt import VoskSpeechRecognizer
 from hermeshub.tts import PiperSpeaker
 from hermeshub.wake import build_wake_detector
@@ -17,6 +18,7 @@ class HermesHubAssistant:
         self.wake = build_wake_detector(config.wake, config.stt, config.audio)
         self.stt = VoskSpeechRecognizer(config.stt, config.audio)
         self.tts = PiperSpeaker(config.tts)
+        self.chime = WakeChime(config.sound)
         self.camera = Camera(config.camera)
         self.agent = HermesAgentClient(config.assistant)
 
@@ -30,6 +32,7 @@ class HermesHubAssistant:
 
     def handle_wake(self, wake):
         LOG.info("wake detected: %s", wake)
+        self.chime.play()
         text = self.stt.listen_once(self.audio)
         if not text:
             LOG.info("no speech recognized")
