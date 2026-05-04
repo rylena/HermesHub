@@ -17,8 +17,14 @@ if [ "\$#" -eq 0 ]; then
   set -- run
 fi
 
+remote_cmd='cd "$REMOTE_DIR" && exec .venv/bin/hermeshub --config config.yaml'
+for arg in "\$@"; do
+  printf -v quoted ' %q' "\$arg"
+  remote_cmd+="\$quoted"
+done
+
 ssh -F /dev/null -i "$KEY_PATH" -o BatchMode=yes -o StrictHostKeyChecking=accept-new "$TARGET_USER@$TARGET_HOST" \\
-  'cd "$REMOTE_DIR" && exec .venv/bin/hermeshub --config config.yaml "\$@"' -- "\$@"
+  "\$remote_cmd"
 EOF
 
 chmod +x "${BIN_DIR}/HermessHub"
