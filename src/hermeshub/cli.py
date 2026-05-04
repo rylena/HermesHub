@@ -9,6 +9,7 @@ from hermeshub.config import load_config
 from hermeshub.doctor import print_doctor, run_doctor
 from hermeshub.sound import WakeChime
 from hermeshub.tts import PiperSpeaker
+from hermeshub.wake_test import run_wake_test
 
 
 def main(argv=None):
@@ -28,6 +29,8 @@ def main(argv=None):
 
     sub.add_parser("capture")
     sub.add_parser("chime")
+    wake_test_parser = sub.add_parser("wake-test")
+    wake_test_parser.add_argument("--seconds", type=float, default=12)
 
     args = parser.parse_args(argv)
     logging.basicConfig(level=getattr(logging, args.log_level.upper(), logging.INFO))
@@ -58,6 +61,8 @@ def main(argv=None):
             return 0
         print("wake chime disabled")
         return 0
+    if args.command == "wake-test":
+        return run_wake_test(config, args.seconds)
     return 2
 
 

@@ -7,6 +7,8 @@ def test_matches_wake_phrase_aliases():
     assert _matches_wake_phrase("her mes", phrases)
     assert _matches_wake_phrase("okay hermies", phrases)
     assert _matches_wake_phrase("her miss", phrases)
+    assert _matches_wake_phrase("her knees", ["her knees"])
+    assert _matches_wake_phrase("armies", ["armies"])
 
 
 def test_does_not_match_unrelated_text():

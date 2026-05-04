@@ -29,7 +29,15 @@ class WakeConfig:
     model_paths: list[str] = field(default_factory=list)
     phrase: str = "hermes"
     aliases: list[str] = field(
-        default_factory=lambda: ["hermes", "her mes", "hermies", "her miss"]
+        default_factory=lambda: [
+            "hermes",
+            "her mes",
+            "hermies",
+            "her miss",
+            "her knees",
+            "harness",
+            "armies",
+        ]
     )
     inference_framework: str = "onnx"
     threshold: float = 0.5

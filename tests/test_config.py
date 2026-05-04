@@ -9,6 +9,7 @@ def test_load_config_example():
     assert config.audio.sample_rate == 44100
     assert config.wake.phrase == "hermes"
     assert "her mes" in config.wake.aliases
+    assert "her knees" in config.wake.aliases
     assert config.wake.engine == "auto"
     assert config.wake.model_paths == []
     assert config.sound.wake_chime_enabled is True

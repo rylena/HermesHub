@@ -58,10 +58,15 @@ class VoskKeywordWakeDetector:
 
         SetLogLevel(-1)
         self.config = wake_config
-        self.phrases = [_normalize(item) for item in [wake_config.phrase, *wake_config.aliases] if item]
+        self.phrases = _wake_phrases(wake_config)
         self.model = Model(stt_config.vosk_model_path)
-        self.recognizer = KaldiRecognizer(self.model, audio_config.sample_rate)
+        self.recognizer = KaldiRecognizer(
+            self.model,
+            audio_config.sample_rate,
+            json.dumps([*self.phrases, "[unk]"]),
+        )
         self.last_wake = 0.0
+        self.last_text = ""
 
     def detect(self, frame):
         now = time.monotonic()
@@ -73,6 +78,8 @@ class VoskKeywordWakeDetector:
         else:
             text = _result_text(self.recognizer.PartialResult(), "partial")
 
+        if text:
+            self.last_text = text
         if _matches_wake_phrase(text, self.phrases):
             self.last_wake = now
             self.recognizer.Reset()
@@ -115,3 +122,12 @@ def _matches_wake_phrase(text, phrases):
         if phrase and _compact(phrase) in compact:
             return True
     return False
+
+
+def _wake_phrases(wake_config):
+    phrases = []
+    for phrase in [wake_config.phrase, *wake_config.aliases]:
+        normalized = _normalize(phrase)
+        if normalized and normalized not in phrases:
+            phrases.append(normalized)
+    return phrases
