@@ -50,8 +50,15 @@ class WakeConfig:
 
 @dataclass
 class SttConfig:
-    engine: str = "sherpa"
+    engine: str = "faster_whisper"
     vosk_model_path: str = "models/vosk-model-en-us-0.22-lgraph"
+    faster_whisper_model: str = "base.en"
+    faster_whisper_device: str = "cpu"
+    faster_whisper_compute_type: str = "int8"
+    faster_whisper_threads: int = 2
+    faster_whisper_beam_size: int = 1
+    faster_whisper_language: str = "en"
+    faster_whisper_vad_filter: bool = False
     sherpa_model_dir: str = "models/sherpa-onnx-streaming-zipformer-en-20M-2023-02-17"
     sherpa_threads: int = 2
     sherpa_int8: bool = True

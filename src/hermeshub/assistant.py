@@ -74,5 +74,9 @@ class HermesHubAssistant:
             self.config.stt.vosk_model_path,
             self.config.audio.sample_rate,
             self.config.tts.interrupt_phrases,
-            model=getattr(self.stt, "model", None),
+            model=self._vosk_stt_model(),
         )
+
+    def _vosk_stt_model(self):
+        model = getattr(self.stt, "model", None)
+        return model if hasattr(model, "_handle") else None

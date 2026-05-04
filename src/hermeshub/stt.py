@@ -15,6 +15,8 @@ from hermeshub.sherpa_test import (
 
 def build_speech_recognizer(config, audio_config):
     engine = _resolve_stt_engine(config)
+    if engine == "faster_whisper":
+        return FasterWhisperSpeechRecognizer(config, audio_config)
     if engine == "sherpa":
         return SherpaSpeechRecognizer(config, audio_config)
     if engine == "parakeet":
@@ -29,6 +31,8 @@ def describe_stt_engine(config):
     resolved = _resolve_stt_engine(config)
     if requested != "auto":
         return resolved, requested
+    if resolved == "faster_whisper":
+        return resolved, "auto selected Faster Whisper CPU int8"
     if resolved == "sherpa":
         return resolved, "auto selected Sherpa for fast local CPU/Raspberry Pi operation"
     if resolved == "parakeet":
@@ -121,6 +125,50 @@ class ParakeetSpeechRecognizer:
         return _extract_parakeet_text(output)
 
 
+class FasterWhisperSpeechRecognizer:
+    def __init__(self, config, audio_config):
+        try:
+            from faster_whisper import WhisperModel
+        except ImportError as exc:
+            raise RuntimeError(
+                "Faster Whisper STT needs faster-whisper. Run scripts/install.sh again."
+            ) from exc
+
+        self.config = config
+        self.audio_config = audio_config
+        self.model = WhisperModel(
+            config.faster_whisper_model,
+            device=config.faster_whisper_device,
+            compute_type=config.faster_whisper_compute_type,
+            cpu_threads=config.faster_whisper_threads,
+        )
+
+    def listen_once(self, audio_source, on_audio_captured=None):
+        return self.listen_once_from_frames(audio_source.frames(), on_audio_captured=on_audio_captured)
+
+    def listen_once_from_frames(self, frames, on_audio_captured=None):
+        audio = _collect_utterance_audio(frames, self.config, on_audio_captured=on_audio_captured)
+        if not audio:
+            return ""
+
+        wav_path = _write_temp_wav(
+            audio,
+            source_sample_rate=self.audio_config.sample_rate,
+            target_sample_rate=16000,
+        )
+        try:
+            segments, _info = self.model.transcribe(
+                str(wav_path),
+                beam_size=self.config.faster_whisper_beam_size,
+                language=self.config.faster_whisper_language or None,
+                vad_filter=self.config.faster_whisper_vad_filter,
+                condition_on_previous_text=False,
+            )
+            return " ".join(segment.text.strip() for segment in segments if segment.text.strip())
+        finally:
+            wav_path.unlink(missing_ok=True)
+
+
 class SherpaSpeechRecognizer:
     def __init__(self, config, audio_config):
         self.config = config
@@ -180,11 +228,15 @@ def _parse_result(raw):
 
 def _resolve_stt_engine(config):
     engine = (config.engine or "auto").lower()
-    if engine in {"vosk", "parakeet", "sherpa"}:
+    if engine in {"vosk", "parakeet", "sherpa", "faster_whisper"}:
         return engine
+    if engine in {"faster-whisper", "whisper", "fw"}:
+        return "faster_whisper"
     if engine in {"parakeet_v2", "parakeet-v2", "nvidia_parakeet"}:
         return "parakeet"
     if engine == "auto":
+        if _faster_whisper_available():
+            return "faster_whisper"
         if _sherpa_available(config):
             return "sherpa"
         if _parakeet_can_run_accelerated():
@@ -200,6 +252,14 @@ def _parakeet_can_run_accelerated():
     except ImportError:
         return False
     return bool(torch.cuda.is_available())
+
+
+def _faster_whisper_available():
+    try:
+        import faster_whisper  # noqa: F401
+    except ImportError:
+        return False
+    return True
 
 
 def _sherpa_available(config):

@@ -24,6 +24,8 @@ def run_doctor(config):
     resolved_stt, stt_detail = describe_stt_engine(config.stt)
     checks.append(("STT engine", True, f"{resolved_stt} ({stt_detail})"))
     checks.append(_path_check("Vosk model", config.stt.vosk_model_path, is_dir=True))
+    if resolved_stt == "faster_whisper":
+        checks.extend(_faster_whisper_checks(config.stt))
     if resolved_stt == "sherpa":
         checks.extend(_sherpa_checks(config.stt))
     if resolved_stt == "parakeet" or (config.stt.engine or "").lower().startswith("parakeet"):
@@ -91,6 +93,21 @@ def _sherpa_checks(config):
         ("Sherpa joiner", root / f"joiner-epoch-99-avg-1{suffix}"),
     ):
         checks.append(_path_check(label, path))
+    return checks
+
+
+def _faster_whisper_checks(config):
+    checks = []
+    checks.append(("python module faster_whisper", _module_exists("faster_whisper"), ""))
+    checks.append(("Faster Whisper model", True, config.faster_whisper_model))
+    checks.append(
+        (
+            "Faster Whisper runtime",
+            True,
+            f"{config.faster_whisper_device}/{config.faster_whisper_compute_type}, "
+            f"{config.faster_whisper_threads} threads",
+        )
+    )
     return checks
 
 
