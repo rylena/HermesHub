@@ -52,7 +52,7 @@ class TtsConfig:
 @dataclass
 class CameraConfig:
     enabled: bool = True
-    device_index: int = 0
+    device_index: int | str = 0
     capture_dir: str = "data/camera"
     include_frame_with_prompt: bool = True
     jpeg_quality: int = 90
