@@ -28,6 +28,9 @@ parakeet = [
   "torch>=2.3",
   "torchaudio>=2.3",
 ]
+sherpa = [
+  "sherpa-onnx>=1.13",
+]
 
 [project.scripts]
 hermeshub = "hermeshub.cli:main"

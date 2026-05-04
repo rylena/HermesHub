@@ -8,6 +8,7 @@ from hermeshub.camera import Camera
 from hermeshub.config import load_config
 from hermeshub.doctor import print_doctor, run_doctor
 from hermeshub.listen_test import run_listen_test
+from hermeshub.sherpa_test import SHERPA_TEST_MODEL_DIR, run_sherpa_test
 from hermeshub.sound import WakeChime
 from hermeshub.tts import PiperSpeaker
 from hermeshub.wake_test import run_wake_test
@@ -33,6 +34,13 @@ def main(argv=None):
     wake_test_parser = sub.add_parser("wake-test")
     wake_test_parser.add_argument("--seconds", type=float, default=12)
     sub.add_parser("listen-test")
+
+    sherpa_parser = sub.add_parser("sherpa-test")
+    sherpa_parser.add_argument("--seconds", type=float, default=8)
+    sherpa_parser.add_argument("--model-dir", default=SHERPA_TEST_MODEL_DIR)
+    sherpa_parser.add_argument("--threads", type=int, default=2)
+    sherpa_parser.add_argument("--fp32", action="store_true")
+    sherpa_parser.add_argument("--wav")
 
     args = parser.parse_args(argv)
     logging.basicConfig(level=getattr(logging, args.log_level.upper(), logging.INFO))
@@ -72,6 +80,8 @@ def main(argv=None):
         return run_wake_test(config, args.seconds)
     if args.command == "listen-test":
         return run_listen_test(config)
+    if args.command == "sherpa-test":
+        return run_sherpa_test(config, args)
     return 2
 
 
